@@ -1,45 +1,52 @@
 <html>
   <head>
-    <title>TEST</title>
+    <title>RNG LEVELUP SIMULATOR</title>
+    <link rel="stylesheet" href="styles.css">
   </head>
 
   <body>
-    <div id="main">
-      
-    </div>
-
-    <button id="clickButton" onclick="levelUp()">
+    <div id="job" class="capitalize"></div>
+    <hr />
+    <div id="level"></div>
+    <hr />
+    <div id="attributes"></div>
+    <hr />
+    <button id="clickButton" onclick="char.levelUp()">
       Level up!
     </button>
-    <button id="resetButton" onclick="changeJob('warrior')">
+    <button id="resetButton" onclick="char.setJob('warrior')">
       Change job to warrior
     </button>
-    <button id="resetButton" onclick="changeJob('mage')">
+    <button id="resetButton" onclick="char.setJob('mage')">
       Change job to mage
     </button>
-    <button id="resetButton" onclick="changeJob('thief')">
+    <button id="resetButton" onclick="char.setJob('thief')">
       Change job to thief
     </button>
-    <button id="resetButton" onclick="resetButton()">
+    <button id="resetButton" onclick="char.reset()">
       Reset
     </button>
+    <hr />
+    <h5>Growth Rate Table</h5>
+    <div id="growth-table"></div>
 
     <script>
-      var main = document.getElementById("main")
-      var char = {
-        job: 'warrior',
-        level: 1,
-        stats: {
-          hp: 10,
-          str: 7,
-          mag: 4,
-          dex: 5,
-          spd: 5,
-          lck: 10,
-          def: 6,
-          res: 3,
-          chr: 15,
-        }
+      var domJob = document.getElementById('job')
+      var domLevel = document.getElementById('level')
+      var domAttributes = document.getElementById('attributes')
+      var domGrowthTable = document.getElementById('growth-table')
+      var baseJob = 'warrior'
+      var baseLevel = 1
+      var baseAttributes = {
+        hp: 10,
+        str: 7,
+        mag: 4,
+        dex: 5,
+        spd: 5,
+        lck: 10,
+        def: 6,
+        res: 3,
+        chr: 15
       }
       var jobs = [{
         name: 'warrior',
@@ -82,89 +89,162 @@
         }
       }]
 
-      function refreshScreen() {
-        main.innerHTML = `
+      var Character = function(job, level, attributes) {
+        this.job = job
+        this.level = level
+        this.attributes = attributes
+        this.listeners = {
+          setJob: [],
+          setLevel: [],
+          setAttributes: []
+        }
+        this.executeListeners = function(methodName) {
+          for (var i = 0, len = this.listeners[methodName].length; i < len; i++) {
+            this.listeners[methodName][i].apply(this)
+          }
+        }
+        this.setJob = function(job) {
+          this.job = job
+          this.executeListeners.call(this, 'setJob')
+        }
+        this.setLevel = function(level) {
+          this.level = level
+          this.executeListeners.call(this, 'setLevel')
+        }
+        this.setAttributes = function(attributes) {
+          this.attributes = attributes
+          this.executeListeners.call(this, 'setAttributes')
+        }
+      }
+
+      Character.prototype.rollStats = function() {
+        var attributes = this.attributes
+        var job = this.job
+        var currentJob = jobs.filter(function(val) {
+          return val.name === job
+        })[0]
+
+        Object.keys(attributes).forEach(function(val) {
+          if (Math.floor(Math.random() * 10) < currentJob.growthRate[val]) {
+            attributes[val] += 1
+          }
+        })
+
+        this.setAttributes(attributes)
+      }
+
+      Character.prototype.levelUp = function() {
+        var level = this.level + 1
+
+        this.setLevel(level)
+        this.rollStats()
+      }
+
+      Character.prototype.reset = function() {
+        var attributes = {
+          hp: 10,
+          str: 7,
+          mag: 4,
+          dex: 5,
+          spd: 5,
+          lck: 10,
+          def: 6,
+          res: 3,
+          chr: 15
+        }
+
+        this.setLevel(1)
+        this.setJob('warrior')
+        this.setAttributes(attributes)
+      }
+
+      var refreshJobDOM = function(char) {
+        domJob.innerHTML = `JOB: ${char.job}`
+      }
+      var refreshLevelDOM = function(char) {
+        domLevel.innerHTML = `LEVEL: ${char.level}`
+      }
+      var refreshAttributesDOM = function(char) {
+        domAttributes.innerHTML = `
           <div>
-            LEVEL: ${char.level}
+            HP: ${char.attributes.hp}
           </div>
           <div>
-            JOB: ${char.job}
+            STR: ${char.attributes.str}
           </div>
           <div>
-            HP: ${char.stats.hp}
+            MAG: ${char.attributes.mag}
           </div>
           <div>
-            STR: ${char.stats.str}
+            DEX: ${char.attributes.dex}
           </div>
           <div>
-            MAG: ${char.stats.mag}
+            SPD: ${char.attributes.spd}
           </div>
           <div>
-            DEX: ${char.stats.dex}
+            LCK: ${char.attributes.lck}
           </div>
           <div>
-            SPD: ${char.stats.spd}
+            DEF: ${char.attributes.def}
           </div>
           <div>
-            LCK: ${char.stats.lck}
+            RES: ${char.attributes.res}
           </div>
           <div>
-            DEF: ${char.stats.def}
-          </div>
-          <div>
-            RES: ${char.stats.res}
-          </div>
-          <div>
-            CHR: ${char.stats.chr}
+            CHR: ${char.attributes.chr}
           </div>
         `
       }
 
-      function rollStats(char) {
-        console.log(char)
-        var currentJob = jobs.filter(function(val) {
-          return val.name === char.job
-        })[0]
-        console.log(currentJob)
-
-        Object.keys(char.stats).forEach(function(val) {
-          if (Math.floor(Math.random() * 10) < currentJob.growthRate[val]) {
-            char.stats[val] += 1
-          }
-        })
+      var refreshScreenDOM = function(char) {
+        refreshJobDOM(char)
+        refreshLevelDOM(char)
+        refreshAttributesDOM(char)
       }
 
-      function levelUp() {
-        char.level += 1
-        rollStats(char)
-        refreshScreen()
-      }
 
-      function resetButton() {
-        char = {
-          job: 'warrior',
-          level: 1,
-          stats: {
-            hp: 10,
-            str: 7,
-            mag: 4,
-            dex: 5,
-            spd: 5,
-            lck: 10,
-            def: 6,
-            res: 3,
-            chr: 15,
-          }
+      var char = new Character(baseJob, baseLevel, baseAttributes)
+      char.listeners.setJob.push(function() { refreshJobDOM(char) })
+      char.listeners.setLevel.push(function() { refreshLevelDOM(char)})
+      char.listeners.setAttributes.push(function() { refreshAttributesDOM(char)})
+
+      refreshScreenDOM(char)
+
+      function makeGrowthTable(jobs) {
+        // make the labels
+        var result = `
+        <table width="100%">
+          <tr>
+            <td><b>Job</b></td>
+            <td><b>HP</b></td>
+            <td><b>STR</b></td>
+            <td><b>MAG</b></td>
+            <td><b>DEX</b></td>
+            <td><b>SPD</b></td>
+            <td><b>LCK</b></td>
+            <td><b>DEF</b></td>
+            <td><b>RES</b></td>
+            <td><b>CHR</b></td>
+          </tr>
+          <tr>
+        `
+        for (var i = 0; i < jobs.length; i++) {
+          result += `<td class="capitalize">${jobs[i].name}</td>`
+          Object.keys(jobs[i].growthRate).forEach(function(val) {
+            result += `<td>${jobs[i].growthRate[val]}0%</td>`
+          })
+          result += '</tr>'
         }
-        refreshScreen()
+        result += `
+          </table>
+          <div>
+            <i>*Every level has x chance of increasing the stat by 1</i>
+          </div>
+        `
+        return result
       }
 
-      function changeJob(job) {
-        char.job = job
-        refreshScreen()
-      }
-
-      refreshScreen()
+      domGrowthTable.innerHTML = makeGrowthTable(jobs)
     </script>
   </body>
 </html>
