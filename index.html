@@ -1,0 +1,170 @@
+<html>
+  <head>
+    <title>TEST</title>
+  </head>
+
+  <body>
+    <div id="main">
+      
+    </div>
+
+    <button id="clickButton" onclick="levelUp()">
+      Level up!
+    </button>
+    <button id="resetButton" onclick="changeJob('warrior')">
+      Change job to warrior
+    </button>
+    <button id="resetButton" onclick="changeJob('mage')">
+      Change job to mage
+    </button>
+    <button id="resetButton" onclick="changeJob('thief')">
+      Change job to thief
+    </button>
+    <button id="resetButton" onclick="resetButton()">
+      Reset
+    </button>
+
+    <script>
+      var main = document.getElementById("main")
+      var char = {
+        job: 'warrior',
+        level: 1,
+        stats: {
+          hp: 10,
+          str: 7,
+          mag: 4,
+          dex: 5,
+          spd: 5,
+          lck: 10,
+          def: 6,
+          res: 3,
+          chr: 15,
+        }
+      }
+      var jobs = [{
+        name: 'warrior',
+        growthRate: {
+          hp: 6,
+          str: 7,
+          mag: 2,
+          dex: 5,
+          spd: 4,
+          lck: 1,
+          def: 4,
+          res: 3,
+          chr: 5
+        }
+      }, {
+        name: 'mage',
+        growthRate: {
+          hp: 3,
+          str: 1,
+          mag: 7,
+          dex: 3,
+          spd: 5,
+          lck: 4,
+          def: 2,
+          res: 6,
+          chr: 5
+        }
+      }, {
+        name: 'thief',
+        growthRate: {
+          hp: 4,
+          str: 3,
+          mag: 2,
+          dex: 6,
+          spd: 6,
+          lck: 5,
+          def: 2,
+          res: 2,
+          chr: 2
+        }
+      }]
+
+      function refreshScreen() {
+        main.innerHTML = `
+          <div>
+            LEVEL: ${char.level}
+          </div>
+          <div>
+            JOB: ${char.job}
+          </div>
+          <div>
+            HP: ${char.stats.hp}
+          </div>
+          <div>
+            STR: ${char.stats.str}
+          </div>
+          <div>
+            MAG: ${char.stats.mag}
+          </div>
+          <div>
+            DEX: ${char.stats.dex}
+          </div>
+          <div>
+            SPD: ${char.stats.spd}
+          </div>
+          <div>
+            LCK: ${char.stats.lck}
+          </div>
+          <div>
+            DEF: ${char.stats.def}
+          </div>
+          <div>
+            RES: ${char.stats.res}
+          </div>
+          <div>
+            CHR: ${char.stats.chr}
+          </div>
+        `
+      }
+
+      function rollStats(char) {
+        console.log(char)
+        var currentJob = jobs.filter(function(val) {
+          return val.name === char.job
+        })[0]
+        console.log(currentJob)
+
+        Object.keys(char.stats).forEach(function(val) {
+          if (Math.floor(Math.random() * 10) < currentJob.growthRate[val]) {
+            char.stats[val] += 1
+          }
+        })
+      }
+
+      function levelUp() {
+        char.level += 1
+        rollStats(char)
+        refreshScreen()
+      }
+
+      function resetButton() {
+        var char = {
+          job: 'warrior',
+          level: 1,
+          stats: {
+            hp: 10,
+            str: 7,
+            mag: 4,
+            dex: 5,
+            spd: 5,
+            lck: 10,
+            def: 6,
+            res: 3,
+            chr: 15,
+          }
+        }
+        refreshScreen()
+      }
+
+      function changeJob(job) {
+        char.job = job
+        refreshScreen()
+      }
+
+      refreshScreen()
+    </script>
+  </body>
+</html>
